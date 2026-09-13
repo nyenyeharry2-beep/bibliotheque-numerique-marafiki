@@ -1,0 +1,17 @@
+{
+  "name": "bibliotheque-numerique-marafiki",
+  "version": "1.0.0",
+  "description": "Bibliothèque numérique Marafiki — recherche de livres, abonnement Mobile Money et dépôt admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3"
+  }
+}

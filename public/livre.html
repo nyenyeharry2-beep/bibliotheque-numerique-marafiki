@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livre — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <div id="fiche"></div>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(async (moi) => {
+      const id = params().get("id");
+      const racine = document.getElementById("fiche");
+      if (!id) {
+        racine.innerHTML = '<p class="empty">Livre non précisé.</p>';
+        return;
+      }
+      try {
+        const resultat = await api(`/api/livres/${encodeURIComponent(id)}`);
+        const livre = resultat.data;
+        document.title = `${livre.titre} — Marafiki`;
+        const action = resultat.peutLire
+          ? `<a class="btn gold" href="/lire?id=${livre.id}">Lire</a>
+             <a class="btn secondary" href="/api/livres/${livre.id}/fichier">Télécharger</a>`
+          : `<a class="btn gold" href="/tarifs">S’abonner pour lire</a>
+             ${moi.utilisateur ? "" : '<a class="btn secondary" href="/compte">Se connecter</a>'}`;
+        racine.innerHTML = `
+          <article class="detail">
+            <div class="cover-lg" style="background:${escapeHtml(livre.couverture || "#1b4332")}">${escapeHtml((livre.titre || "M").charAt(0))}</div>
+            <div>
+              <p class="brand__eyebrow">${escapeHtml(livre.genre || "Livre")} · ${escapeHtml(String(livre.type_fichier || "").toUpperCase())}</p>
+              <h2>${escapeHtml(livre.titre)}</h2>
+              <p class="lead">${escapeHtml(livre.auteur)}${livre.annee ? ` · ${livre.annee}` : ""}</p>
+              <p>${escapeHtml(livre.resume || "Pas de résumé.")}</p>
+              <p class="notice" style="margin-top:18px">
+                ${resultat.peutLire
+                  ? "Votre abonnement est actif. Vous pouvez ouvrir le fichier."
+                  : "Le fichier complet (PDF, EPUB ou autre) s’ouvre après validation de votre paiement."}
+              </p>
+              <div class="actions">${action}</div>
+            </div>
+          </article>
+        `;
+      } catch (erreur) {
+        racine.innerHTML = `<p class="empty">${escapeHtml(erreur.message)}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>

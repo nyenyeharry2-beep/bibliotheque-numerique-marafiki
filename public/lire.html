@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lecture — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <p><a href="/catalogue">← Retour au catalogue</a></p>
+      <h2 id="titre-livre">Lecture</h2>
+      <p id="meta-livre" class="muted"></p>
+      <div id="lecteur"></div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(async () => {
+      const id = params().get("id");
+      const zone = document.getElementById("lecteur");
+      if (!id) {
+        zone.innerHTML = '<p class="empty">Livre non précisé.</p>';
+        return;
+      }
+      try {
+        const resultat = await api(`/api/livres/${encodeURIComponent(id)}`);
+        if (!resultat.peutLire) {
+          zone.innerHTML = `
+            <div class="panel">
+              <p>Ce fichier est réservé aux abonnés.</p>
+              <a class="btn gold" href="/tarifs">Voir les tarifs</a>
+            </div>`;
+          return;
+        }
+        const livre = resultat.data;
+        document.getElementById("titre-livre").textContent = livre.titre;
+        document.getElementById("meta-livre").textContent = `${livre.auteur} · ${String(livre.type_fichier || "").toUpperCase()}`;
+        document.title = `${livre.titre} — Lecture`;
+        const urlFichier = `/api/livres/${livre.id}/fichier`;
+        const type = String(livre.type_fichier || "").toLowerCase();
+
+        if (type === "pdf") {
+          zone.innerHTML = `<iframe class="reader-frame" title="Lecteur PDF" src="${urlFichier}"></iframe>`;
+          return;
+        }
+
+        if (type === "txt" || type === "rtf") {
+          const texte = await fetch(urlFichier, { credentials: "same-origin" }).then((r) => {
+            if (!r.ok) throw new Error("Impossible d’ouvrir le texte");
+            return r.text();
+          });
+          zone.innerHTML = `<article class="reader-text">${escapeHtml(texte)}</article>`;
+          return;
+        }
+
+        if (type === "epub" && window.ePub) {
+          zone.innerHTML = `<div id="epub-view" class="reader-frame"></div>`;
+          const book = ePub(urlFichier);
+          const rendition = book.renderTo("epub-view", { width: "100%", height: "70vh" });
+          rendition.display();
+          return;
+        }
+
+        zone.innerHTML = `
+          <div class="panel">
+            <p>Ce format se télécharge pour être ouvert sur votre appareil.</p>
+            <a class="btn" href="${urlFichier}">Télécharger le fichier</a>
+          </div>`;
+      } catch (erreur) {
+        zone.innerHTML = `<p class="empty">${escapeHtml(erreur.message)}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>

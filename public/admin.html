@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <div id="zone-admin"></div>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(async (moi) => {
+      const zone = document.getElementById("zone-admin");
+      if (!moi.utilisateur || moi.utilisateur.role !== "admin") {
+        zone.innerHTML = `
+          <div class="panel">
+            <h2>Espace administrateur</h2>
+            <p>Connectez-vous avec le compte administrateur.</p>
+            <a class="btn" href="/compte">Aller à la connexion</a>
+          </div>`;
+        return;
+      }
+
+      zone.innerHTML = `
+        <h2>Administration</h2>
+        <section class="panel">
+          <h3>Déposer un livre</h3>
+          <p class="muted">PDF, EPUB, TXT, DOC, DOCX, MOBI, RTF.</p>
+          <form id="form-livre">
+            <label>Titre</label>
+            <input name="titre" required>
+            <label>Auteur</label>
+            <input name="auteur" required>
+            <div class="split">
+              <div>
+                <label>Année</label>
+                <input name="annee" type="number">
+              </div>
+              <div>
+                <label>Genre</label>
+                <input name="genre" placeholder="Contes, Essais, Guides…">
+              </div>
+            </div>
+            <label>Résumé</label>
+            <textarea name="resume"></textarea>
+            <label>Fichier</label>
+            <input name="fichier" type="file" required>
+            <div class="actions"><button class="btn gold" type="submit">Déposer</button></div>
+            <p id="msg-livre" class="message"></p>
+          </form>
+        </section>
+
+        <section class="panel" style="margin-top:20px">
+          <h3>Preuves de paiement</h3>
+          <div id="preuves"></div>
+        </section>
+
+        <section class="panel" style="margin-top:20px">
+          <h3>Livres en ligne</h3>
+          <div id="livres-admin"></div>
+        </section>
+      `;
+
+      await chargerPreuves();
+      await chargerLivres();
+
+      document.getElementById("form-livre").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const msg = document.getElementById("msg-livre");
+        const form = event.target;
+        const corps = new FormData(form);
+        try {
+          msg.className = "message";
+          msg.textContent = "Dépôt en cours…";
+          await api("/api/admin/livres", { method: "POST", body: corps });
+          msg.classList.add("ok");
+          msg.textContent = "Livre déposé.";
+          form.reset();
+          await chargerLivres();
+        } catch (erreur) {
+          msg.className = "message error";
+          msg.textContent = erreur.message;
+        }
+      });
+    });
+
+    async function chargerPreuves() {
+      const racine = document.getElementById("preuves");
+      const resultat = await api("/api/admin/abonnements");
+      if (!resultat.data.length) {
+        racine.innerHTML = '<p class="empty">Aucune demande.</p>';
+        return;
+      }
+      racine.innerHTML = `
+        <div class="tableContainer" style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Lecteur</th>
+              <th>Plan</th>
+              <th>Numéro</th>
+              <th>Capture</th>
+              <th>Statut</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${resultat.data.map((abo) => `
+              <tr>
+                <td>${escapeHtml(abo.utilisateur ? abo.utilisateur.nom : "")}<br>
+                    <span class="muted">${escapeHtml(abo.utilisateur ? abo.utilisateur.email : "")}</span></td>
+                <td>${escapeHtml(abo.plan)} · ${abo.montant} FC</td>
+                <td>${escapeHtml(formatNumero(abo.numero_paiement))}</td>
+                <td>${abo.fichier_preuve
+                  ? `<a href="/api/admin/preuves/${abo.id}" target="_blank" rel="noopener">
+                       <img class="preuve" alt="Preuve" src="/api/admin/preuves/${abo.id}">
+                     </a>`
+                  : "—"}</td>
+                <td>${escapeHtml(abo.statut)}${abo.date_fin ? `<br><span class="muted">${formatDate(abo.date_fin)}</span>` : ""}</td>
+                <td>
+                  ${abo.statut === "en_attente" ? `
+                    <button class="btn small" data-valider="${abo.id}">Valider</button>
+                    <button class="btn small danger" data-refuser="${abo.id}">Refuser</button>
+                  ` : ""}
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+        </div>
+      `;
+      racine.querySelectorAll("[data-valider]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          await api(`/api/admin/abonnements/${btn.dataset.valider}/valider`, { method: "POST", body: {} });
+          await chargerPreuves();
+        });
+      });
+      racine.querySelectorAll("[data-refuser]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          await api(`/api/admin/abonnements/${btn.dataset.refuser}/refuser`, { method: "POST", body: {} });
+          await chargerPreuves();
+        });
+      });
+    }
+
+    async function chargerLivres() {
+      const racine = document.getElementById("livres-admin");
+      const resultat = await api("/api/livres");
+      racine.innerHTML = `
+        <table>
+          <thead><tr><th>Titre</th><th>Auteur</th><th>Type</th><th></th></tr></thead>
+          <tbody>
+            ${resultat.data.map((livre) => `
+              <tr>
+                <td>${escapeHtml(livre.titre)}</td>
+                <td>${escapeHtml(livre.auteur)}</td>
+                <td>${escapeHtml(livre.type_fichier)}</td>
+                <td><button class="btn small danger" data-supprimer="${livre.id}">Retirer</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      racine.querySelectorAll("[data-supprimer]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          if (!confirm("Retirer ce livre ?")) return;
+          await api(`/api/admin/livres/${btn.dataset.supprimer}`, { method: "DELETE" });
+          await chargerLivres();
+        });
+      });
+    }
+  </script>
+</body>
+</html>

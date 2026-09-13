@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tarifs et paiement — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <h2>S’abonner</h2>
+      <p class="lead">Payez par Mobile Money, puis envoyez la capture d’écran. L’administrateur active votre accès.</p>
+
+      <div class="prices">
+        <article class="card price-card">
+          <h3>Une semaine</h3>
+          <p class="price">500 FC</p>
+          <p class="muted">7 jours de lecture et de téléchargement.</p>
+        </article>
+        <article class="card price-card">
+          <h3>16 jours</h3>
+          <p class="price">759 FC</p>
+          <p class="muted">Accès plus long, même catalogue.</p>
+        </article>
+      </div>
+
+      <div class="panel">
+        <h3>Numéros où payer</h3>
+        <p>Envoyez <strong>500 FC</strong> ou <strong>759 FC</strong> à l’un de ces numéros :</p>
+        <div class="numbers">
+          <button type="button" class="number-pill" data-copy="+243841194151">+243 841 194 151</button>
+          <button type="button" class="number-pill" data-copy="+243998595006">+243 998 595 006</button>
+        </div>
+        <p id="copie" class="muted"></p>
+      </div>
+
+      <form id="form-preuve" class="panel" style="margin-top:20px">
+        <h3>Envoyer la capture de paiement</h3>
+        <div id="etat-compte" class="notice"></div>
+        <label for="plan">Formule</label>
+        <select id="plan" name="plan" required>
+          <option value="7j">500 FC — 7 jours</option>
+          <option value="16j">759 FC — 16 jours</option>
+        </select>
+        <label for="numero">Numéro utilisé</label>
+        <select id="numero" name="numero" required>
+          <option value="+243841194151">+243 841 194 151</option>
+          <option value="+243998595006">+243 998 595 006</option>
+        </select>
+        <label for="preuve">Capture d’écran (jpg, png ou webp)</label>
+        <input id="preuve" name="preuve" type="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+        <div class="actions">
+          <button class="btn gold" type="submit">Envoyer la preuve</button>
+        </div>
+        <p id="message" class="message"></p>
+      </form>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then((moi) => {
+      const etat = document.getElementById("etat-compte");
+      if (!moi.utilisateur) {
+        etat.innerHTML = 'Connectez-vous d’abord. <a href="/compte">Créer un compte ou se connecter</a>';
+      } else {
+        etat.textContent = `${moi.utilisateur.nom} — ${statutLabel(moi.abonnement)}`;
+      }
+
+      document.querySelectorAll("[data-copy]").forEach((bouton) => {
+        bouton.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(bouton.dataset.copy);
+            document.getElementById("copie").textContent = "Numéro copié.";
+          } catch (error) {
+            document.getElementById("copie").textContent = bouton.dataset.copy;
+          }
+        });
+      });
+
+      document.getElementById("form-preuve").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = document.getElementById("message");
+        message.className = "message";
+        if (!moi.utilisateur) {
+          message.classList.add("error");
+          message.textContent = "Connectez-vous avant d’envoyer une preuve.";
+          return;
+        }
+        const fichier = document.getElementById("preuve").files[0];
+        if (!fichier) {
+          message.classList.add("error");
+          message.textContent = "Ajoutez la capture d’écran.";
+          return;
+        }
+        const corps = new FormData();
+        corps.append("plan", document.getElementById("plan").value);
+        corps.append("numero", document.getElementById("numero").value);
+        corps.append("preuve", fichier);
+        try {
+          message.textContent = "Envoi de la capture…";
+          await api("/api/abonnements", { method: "POST", body: corps });
+          message.classList.add("ok");
+          message.textContent = "Preuve envoyée. L’administrateur va la vérifier.";
+          event.target.reset();
+        } catch (erreur) {
+          message.classList.add("error");
+          message.textContent = erreur.message;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

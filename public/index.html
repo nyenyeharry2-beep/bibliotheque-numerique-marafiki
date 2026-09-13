@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bibliothèque numérique Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <section class="hero">
+        <div>
+          <p class="brand__eyebrow">Lire près de chez soi</p>
+          <h2>Cherchez un livre, payez quelques francs, lisez sur votre téléphone.</h2>
+          <p>
+            Marafiki rassemble des PDF, des EPUB et d’autres fichiers déposés par l’administrateur.
+            L’abonnement coûte <strong>500 FC pour 7 jours</strong> ou <strong>759 FC pour 16 jours</strong>.
+          </p>
+          <form class="search-box" action="/catalogue" method="get">
+            <input type="search" name="q" placeholder="Titre, auteur ou mot-clé…" aria-label="Rechercher un livre">
+            <button class="btn" type="submit">Rechercher</button>
+          </form>
+        </div>
+        <aside class="panel">
+          <h3>Où payer</h3>
+          <p class="muted">Mobile Money — envoyez ensuite la capture d’écran.</p>
+          <div class="numbers">
+            <span class="number-pill">+243 841 194 151</span>
+            <span class="number-pill">+243 998 595 006</span>
+          </div>
+          <a class="btn gold" href="/tarifs">S’abonner</a>
+        </aside>
+      </section>
+
+      <section>
+        <div class="split" style="align-items:end;margin-bottom:16px">
+          <h3 class="section-title">Livres à découvrir</h3>
+          <a href="/catalogue">Voir tout le catalogue</a>
+        </div>
+        <div id="accueil-livres" class="grid"></div>
+      </section>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(async () => {
+      const resultat = await api("/api/livres");
+      const racine = document.getElementById("accueil-livres");
+      racine.innerHTML = resultat.data.slice(0, 6).map(carteLivre).join("") ||
+        '<p class="empty">Aucun livre pour le moment.</p>';
+    }).catch((erreur) => {
+      document.getElementById("accueil-livres").innerHTML =
+        `<p class="empty">${escapeHtml(erreur.message)}</p>`;
+    });
+  </script>
+</body>
+</html>

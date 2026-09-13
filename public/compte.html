@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compte — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <div id="zone-compte"></div>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(afficher);
+
+    function afficher(moi) {
+      const zone = document.getElementById("zone-compte");
+      if (moi.utilisateur) {
+        zone.innerHTML = `
+          <h2>Bonjour, ${escapeHtml(moi.utilisateur.nom)}</h2>
+          <div class="panel">
+            <p><strong>E-mail :</strong> ${escapeHtml(moi.utilisateur.email)}</p>
+            <p><strong>Abonnement :</strong> ${escapeHtml(statutLabel(moi.abonnement))}</p>
+            <div class="actions">
+              <a class="btn gold" href="/tarifs">Payer ou renouveler</a>
+              ${moi.utilisateur.role === "admin" ? '<a class="btn secondary" href="/admin">Espace admin</a>' : ""}
+              <button id="btn-out" class="btn danger" type="button">Se déconnecter</button>
+            </div>
+          </div>
+        `;
+        document.getElementById("btn-out").addEventListener("click", async () => {
+          await api("/api/deconnexion", { method: "POST", body: {} });
+          window.location.reload();
+        });
+        return;
+      }
+
+      zone.innerHTML = `
+        <h2>Votre compte</h2>
+        <div class="auth-grid">
+          <form id="form-connexion" class="panel">
+            <h3>Connexion</h3>
+            <label for="email-in">E-mail</label>
+            <input id="email-in" name="email" type="email" required>
+            <label for="pass-in">Mot de passe</label>
+            <input id="pass-in" name="motDePasse" type="password" required>
+            <div class="actions"><button class="btn" type="submit">Entrer</button></div>
+            <p id="msg-in" class="message"></p>
+          </form>
+          <form id="form-inscription" class="panel">
+            <h3>Créer un compte</h3>
+            <label for="nom">Nom</label>
+            <input id="nom" name="nom" required>
+            <label for="email-up">E-mail</label>
+            <input id="email-up" name="email" type="email" required>
+            <label for="pass-up">Mot de passe (6 caractères min.)</label>
+            <input id="pass-up" name="motDePasse" type="password" minlength="6" required>
+            <div class="actions"><button class="btn gold" type="submit">S’inscrire</button></div>
+            <p id="msg-up" class="message"></p>
+          </form>
+        </div>
+      `;
+
+      document.getElementById("form-connexion").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const msg = document.getElementById("msg-in");
+        try {
+          await api("/api/connexion", {
+            method: "POST",
+            body: {
+              email: document.getElementById("email-in").value,
+              motDePasse: document.getElementById("pass-in").value
+            }
+          });
+          window.location.href = params().get("next") || "/compte";
+        } catch (erreur) {
+          msg.className = "message error";
+          msg.textContent = erreur.message;
+        }
+      });
+
+      document.getElementById("form-inscription").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const msg = document.getElementById("msg-up");
+        try {
+          await api("/api/inscription", {
+            method: "POST",
+            body: {
+              nom: document.getElementById("nom").value,
+              email: document.getElementById("email-up").value,
+              motDePasse: document.getElementById("pass-up").value
+            }
+          });
+          window.location.href = "/tarifs";
+        } catch (erreur) {
+          msg.className = "message error";
+          msg.textContent = erreur.message;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

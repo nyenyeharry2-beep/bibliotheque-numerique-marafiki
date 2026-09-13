@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalogue — Marafiki</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ibarra+Real+Nova:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app-shell">
+    <main class="wrap">
+      <h2>Catalogue</h2>
+      <p class="lead">Cherchez par titre, auteur ou genre. Le résumé est libre ; le fichier complet demande un abonnement.</p>
+      <form id="form-recherche" class="search-box">
+        <input id="champ-q" type="search" name="q" placeholder="Rechercher…">
+        <select id="champ-genre" name="genre">
+          <option value="">Tous les genres</option>
+        </select>
+        <button class="btn" type="submit">Filtrer</button>
+      </form>
+      <div id="chips" class="chips"></div>
+      <p id="compte-resultats" class="muted"></p>
+      <div id="liste" class="grid"></div>
+    </main>
+  </div>
+  <script src="/app.js"></script>
+  <script>
+    bootstrapPage().then(charger);
+
+    async function charger() {
+      const url = params();
+      document.getElementById("champ-q").value = url.get("q") || "";
+      const genre = url.get("genre") || "";
+      const resultat = await api(`/api/livres?q=${encodeURIComponent(url.get("q") || "")}&genre=${encodeURIComponent(genre)}`);
+      const select = document.getElementById("champ-genre");
+      resultat.genres.forEach((g) => {
+        const option = document.createElement("option");
+        option.value = g;
+        option.textContent = g;
+        if (g === genre) option.selected = true;
+        select.appendChild(option);
+      });
+      document.getElementById("chips").innerHTML = [
+        `<a class="chip${genre ? "" : " active"}" href="/catalogue?q=${encodeURIComponent(url.get("q") || "")}">Tous</a>`,
+        ...resultat.genres.map((g) =>
+          `<a class="chip${g === genre ? " active" : ""}" href="/catalogue?q=${encodeURIComponent(url.get("q") || "")}&genre=${encodeURIComponent(g)}">${escapeHtml(g)}</a>`
+        )
+      ].join("");
+      document.getElementById("compte-resultats").textContent =
+        `${resultat.count} livre${resultat.count > 1 ? "s" : ""}`;
+      document.getElementById("liste").innerHTML = resultat.data.map(carteLivre).join("") ||
+        '<div class="empty">Aucun résultat. Essayez un autre mot.</div>';
+    }
+
+    document.getElementById("form-recherche").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const q = document.getElementById("champ-q").value;
+      const genre = document.getElementById("champ-genre").value;
+      const next = new URL("/catalogue", window.location.origin);
+      if (q) next.searchParams.set("q", q);
+      if (genre) next.searchParams.set("genre", genre);
+      window.location.href = next.toString();
+    });
+  </script>
+</body>
+</html>
