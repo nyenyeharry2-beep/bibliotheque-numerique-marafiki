@@ -16,6 +16,15 @@ Après le paiement, le lecteur envoie une **capture d’écran**. L’admin la v
 
 Sans abonnement actif, le catalogue et les résumés restent visibles. Le fichier complet (lecture ou téléchargement) est réservé aux abonnés.
 
+## Diaporama
+
+Présentation professionnelle (plein écran) :
+
+- en local : ouvrez http://localhost:10000/diaporama.html après `npm start`
+- ou ouvrez directement le fichier [`public/diaporama.html`](public/diaporama.html) dans le navigateur
+
+Flèches du clavier pour avancer, **F** pour le plein écran, **Ctrl+P** pour enregistrer en PDF.
+
 ## Lancer en local
 
 ```bash

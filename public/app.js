@@ -94,6 +94,7 @@ function footerHtml() {
     <footer class="site-footer">
       <div class="wrap">
         Marafiki — 500 FC / 7 jours · 759 FC / 16 jours · paiement au +243 841 194 151 ou +243 998 595 006
+        · <a href="/diaporama.html">Présentation</a>
       </div>
     </footer>
   `;

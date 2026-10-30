@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bibliothèque numérique Marafiki — Présentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --vert: #143528;
+      --vert-2: #1b4332;
+      --or: #c4a35a;
+      --creme: #f4efe4;
+      --papier: #fbf7ef;
+      --encre: #1a1814;
+      --muted: #5e574c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #0d1f18;
+      color: var(--encre);
+      font-family: "Source Sans 3", system-ui, sans-serif;
+    }
+
+    .deck {
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      padding: 56px 72px 72px;
+      background: var(--papier);
+      position: relative;
+    }
+
+    .slide.active { display: flex; flex-direction: column; }
+
+    .slide::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 8px;
+      background: var(--vert);
+    }
+
+    .slide.cover,
+    .slide.closing {
+      background: var(--vert);
+      color: var(--creme);
+      justify-content: center;
+    }
+
+    .slide.cover::before,
+    .slide.closing::before { background: var(--or); }
+
+    .kicker {
+      font-size: 13px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--or);
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .cover .kicker,
+    .closing .kicker { color: var(--or); }
+
+    h1 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(42px, 5.4vw, 68px);
+      font-weight: 600;
+      line-height: 1.08;
+      max-width: 16ch;
+    }
+
+    h2 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(34px, 4vw, 48px);
+      font-weight: 600;
+      line-height: 1.15;
+      margin-bottom: 28px;
+      color: var(--vert);
+    }
+
+    .lede {
+      margin-top: 22px;
+      font-size: 22px;
+      line-height: 1.45;
+      max-width: 38ch;
+      color: rgba(244, 239, 228, 0.86);
+    }
+
+    .meta-line {
+      margin-top: 40px;
+      font-size: 15px;
+      letter-spacing: 0.04em;
+      color: rgba(244, 239, 228, 0.7);
+    }
+
+    p, li { font-size: 20px; line-height: 1.5; color: var(--muted); }
+
+    .body { max-width: 1080px; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      flex: 1;
+      align-items: start;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid rgba(20, 53, 40, 0.12);
+      padding: 24px 26px;
+    }
+
+    .panel h3 {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 26px;
+      color: var(--vert);
+      margin-bottom: 10px;
+    }
+
+    .panel strong.price {
+      display: block;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 42px;
+      color: var(--vert);
+      line-height: 1;
+      margin: 8px 0 10px;
+    }
+
+    ul.clean { list-style: none; }
+    ul.clean li {
+      padding: 10px 0 10px 22px;
+      position: relative;
+      border-bottom: 1px solid rgba(20, 53, 40, 0.08);
+      color: var(--encre);
+    }
+    ul.clean li:last-child { border-bottom: 0; }
+    ul.clean li::before {
+      content: "";
+      width: 8px; height: 8px;
+      background: var(--or);
+      position: absolute;
+      left: 0; top: 18px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-top: 8px;
+    }
+
+    .step {
+      background: #fff;
+      border-top: 3px solid var(--vert);
+      padding: 18px 16px 20px;
+      min-height: 160px;
+    }
+
+    .step .n {
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 28px;
+      color: var(--or);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .step p { font-size: 16px; color: var(--encre); }
+
+    .phone {
+      font-family: ui-monospace, "Source Sans 3", sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--vert);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(20, 53, 40, 0.1);
+      font-size: 18px;
+    }
+
+    th {
+      color: var(--vert);
+      font-weight: 600;
+      background: #efe8d8;
+    }
+
+    td { color: var(--encre); }
+
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px 0 32px;
+      background: rgba(13, 31, 24, 0.92);
+      color: var(--creme);
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      z-index: 5;
+    }
+
+    .progress {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 0;
+      background: var(--or);
+    }
+
+    .nav-btns { display: flex; gap: 8px; }
+    .nav-btns button {
+      background: transparent;
+      color: var(--creme);
+      border: 1px solid rgba(244, 239, 228, 0.25);
+      padding: 6px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .hint { font-size: 12px; opacity: 0.7; }
+
+    @media (max-width: 900px) {
+      .slide { padding: 36px 24px 70px; }
+      .grid-2, .grid-3, .steps { grid-template-columns: 1fr; }
+      .step { min-height: 0; }
+      h1 { font-size: 36px; }
+    }
+
+    @media print {
+      .footer-bar { display: none; }
+      .slide {
+        display: flex !important;
+        height: 100vh;
+        page-break-after: always;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <section class="slide cover active">
+      <p class="kicker">Présentation du projet</p>
+      <h1>Bibliothèque numérique Marafiki</h1>
+      <p class="lede">Une plateforme de lecture en ligne : chercher un livre, s’abonner en francs congolais, lire sur téléphone.</p>
+      <p class="meta-line">HARRY NYENYE · 2026</p>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">01 — Contexte</p>
+      <h2>Le livre est là. L’accès ne l’est pas toujours.</h2>
+      <div class="grid-2">
+        <div>
+          <p>Beaucoup de lecteurs n’ont pas une bibliothèque physique à proximité. Acheter chaque ouvrage coûte cher. Les fichiers circulent sans organisation, sans suivi, sans modèle clair.</p>
+        </div>
+        <ul class="clean">
+          <li>Distance et horaires des bibliothèques physiques</li>
+          <li>Prix élevé d’un livre papier à l’unité</li>
+          <li>Fichiers dispersés, difficiles à retrouver</li>
+          <li>Pas de contrôle simple pour l’administrateur</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">02 — Proposition</p>
+      <h2>Marafiki, un catalogue vivant.</h2>
+      <div class="grid-3">
+        <article class="panel">
+          <h3>Chercher</h3>
+          <p>Titre, auteur ou genre. Les résumés restent visibles pour tout le monde.</p>
+        </article>
+        <article class="panel">
+          <h3>S’abonner</h3>
+          <p>Un tarif court, un tarif un peu plus long. Paiement Mobile Money local.</p>
+        </article>
+        <article class="panel">
+          <h3>Lire</h3>
+          <p>PDF et EPUB dans le navigateur. Les autres formats se téléchargent.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">03 — Offre</p>
+      <h2>Deux formules, en francs congolais.</h2>
+      <div class="grid-2">
+        <article class="panel">
+          <h3>Une semaine</h3>
+          <strong class="price">500 FC</strong>
+          <p>7 jours de lecture et de téléchargement sur tout le catalogue ouvert.</p>
+        </article>
+        <article class="panel">
+          <h3>Seize jours</h3>
+          <strong class="price">759 FC</strong>
+          <p>Le même accès, plus longtemps, pour un travail scolaire ou une lecture suivie.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">04 — Paiement</p>
+      <h2>On paie, on envoie la capture, on lit.</h2>
+      <div class="grid-2">
+        <div>
+          <p>Le lecteur envoie l’argent à l’un de ces numéros, puis dépose une capture d’écran. L’administrateur voit la preuve et ouvre l’accès.</p>
+          <p style="margin-top:18px" class="phone">+243 841 194 151</p>
+          <p class="phone">+243 998 595 006</p>
+        </div>
+        <ul class="clean">
+          <li>Choix du plan : 7 jours ou 16 jours</li>
+          <li>Paiement Mobile Money</li>
+          <li>Envoi obligatoire de la capture</li>
+          <li>Validation manuelle dans l’espace admin</li>
+          <li>Alerte Telegram si le bot est configuré</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">05 — Administration</p>
+      <h2>Un seul espace pour gérer le fonds.</h2>
+      <div class="grid-2">
+        <ul class="clean">
+          <li>Dépôt de PDF, EPUB, TXT, DOC, DOCX, MOBI, RTF</li>
+          <li>Titre, auteur, genre, résumé</li>
+          <li>File d’attente des preuves de paiement</li>
+          <li>Valider ou refuser chaque demande</li>
+          <li>Retirer un livre du catalogue</li>
+        </ul>
+        <article class="panel">
+          <h3>Compte de démonstration</h3>
+          <p>E-mail : admin@marafiki.cd</p>
+          <p style="margin-top:8px">Mot de passe à changer en production via ADMIN_PASSWORD.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">06 — Parcours</p>
+      <h2>Du premier clic jusqu’à la page.</h2>
+      <div class="steps">
+        <div class="step"><span class="n">1</span><p>Le lecteur cherche et ouvre une fiche.</p></div>
+        <div class="step"><span class="n">2</span><p>Sans abonnement, le fichier reste fermé.</p></div>
+        <div class="step"><span class="n">3</span><p>Il paie 500 ou 759 FC, puis envoie la capture.</p></div>
+        <div class="step"><span class="n">4</span><p>L’admin vérifie la photo et valide.</p></div>
+        <div class="step"><span class="n">5</span><p>Le bouton Lire s’ouvre jusqu’à la date de fin.</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">07 — Technique</p>
+      <h2>Simple à héberger, prêt pour Render.</h2>
+      <table>
+        <thead>
+          <tr><th>Couche</th><th>Choix</th><th>Rôle</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Application</td><td>Node.js + Express</td><td>Site, comptes, fichiers</td></tr>
+          <tr><td>Interface</td><td>HTML, CSS, JavaScript</td><td>Catalogue, lecteur, admin</td></tr>
+          <tr><td>Données</td><td>PostgreSQL (Render)</td><td>Utilisateurs, livres, abonnements</td></tr>
+          <tr><td>Fichiers</td><td>Disque persistant</td><td>PDF, EPUB, captures</td></tr>
+          <tr><td>Alertes</td><td>Telegram</td><td>Preuves et nouveaux livres</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">08 — Mise en ligne</p>
+      <h2>Quatre réglages sur Render.</h2>
+      <div class="grid-2">
+        <ul class="clean">
+          <li>Web Service : npm install / npm start</li>
+          <li>Postgres : coller DATABASE_URL</li>
+          <li>Disque : monter sur .../uploads</li>
+          <li>Telegram : TOKEN et CHAT_ID</li>
+        </ul>
+        <article class="panel">
+          <h3>Adresse du code</h3>
+          <p>github.com/nyenyeharry2-beep/bibliotheque-numerique-marafiki</p>
+          <p style="margin-top:12px">En local : npm install puis npm start, puis http://localhost:10000</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="kicker">09 — Ce qui est livré</p>
+      <h2>Un site utilisable, pas une maquette.</h2>
+      <div class="grid-3">
+        <article class="panel">
+          <h3>Catalogue</h3>
+          <p>Recherche, genres, fiches, lecteur PDF et EPUB.</p>
+        </article>
+        <article class="panel">
+          <h3>Abonnements</h3>
+          <p>Preuve obligatoire, validation admin, accès daté.</p>
+        </article>
+        <article class="panel">
+          <h3>Exploitation</h3>
+          <p>Dépôt de fichiers, Telegram, déploiement Render.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide closing">
+      <p class="kicker">Marafiki</p>
+      <h1>Merci.</h1>
+      <p class="lede">Des questions, une démonstration, un premier dépôt de livres : le site est prêt à recevoir le fonds.</p>
+      <p class="meta-line">Paiement · +243 841 194 151 · +243 998 595 006</p>
+    </section>
+  </div>
+
+  <div class="footer-bar">
+    <div class="progress" id="progress"></div>
+    <span>Bibliothèque numérique Marafiki</span>
+    <span id="counter">1 / 11</span>
+    <div class="nav-btns">
+      <span class="hint">← → · F plein écran · P imprimer</span>
+      <button type="button" id="prev" aria-label="Précédent">Précédent</button>
+      <button type="button" id="next" aria-label="Suivant">Suivant</button>
+    </div>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    let index = 0;
+
+    function show(i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((slide, n) => slide.classList.toggle("active", n === index));
+      counter.textContent = (index + 1) + " / " + slides.length;
+      progress.style.width = ((index + 1) / slides.length * 100) + "%";
+    }
+
+    document.getElementById("next").addEventListener("click", () => show(index + 1));
+    document.getElementById("prev").addEventListener("click", () => show(index - 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowRight", "ArrowDown", " ", "PageDown", "Enter"].includes(event.key)) {
+        event.preventDefault();
+        show(index + 1);
+      }
+      if (["ArrowLeft", "ArrowUp", "PageUp", "Backspace"].includes(event.key)) {
+        event.preventDefault();
+        show(index - 1);
+      }
+      if (event.key === "Home") show(0);
+      if (event.key === "End") show(slides.length - 1);
+      if (event.key === "f" || event.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+    });
+
+    let touchX = null;
+    document.addEventListener("touchstart", (e) => { touchX = e.changedTouches[0].screenX; });
+    document.addEventListener("touchend", (e) => {
+      if (touchX === null) return;
+      const dx = e.changedTouches[0].screenX - touchX;
+      if (dx < -50) show(index + 1);
+      if (dx > 50) show(index - 1);
+      touchX = null;
+    });
+
+    show(0);
+  </script>
+</body>
+</html>
